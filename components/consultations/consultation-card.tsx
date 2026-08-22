@@ -161,6 +161,8 @@ export function ConsultationCard({
             {status}
           </Badge>
             <div className="flex items-center gap-2 pt-1">
+            { status !== "completed" && (
+              <>
               <Button
                 variant="link"
                 className="h-auto p-0 text-xs"
@@ -168,7 +170,6 @@ export function ConsultationCard({
               >
                 Update
               </Button>
-          { status !== "completed" && (
               <Button
                 variant="link"
                 className="h-auto p-0 text-xs text-muted-foreground hover:text-destructive"
@@ -176,6 +177,7 @@ export function ConsultationCard({
               >
                 Cancel
               </Button>
+              </>
 )}
             </div>
         </div>
