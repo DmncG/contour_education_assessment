@@ -12,7 +12,7 @@ export default async function StudentDashboard() {
     .select("id, consult_reason, date_time, status")
     .eq("student_id", profile.id)
     .neq("status", "cancelled")
-    .order("date_time", { ascending: false });
+    .order("date_time", { ascending: true });
 
   return (
     <div className="flex-1 w-full flex flex-col gap-6">

@@ -22,6 +22,7 @@ import {
   SelectTrigger,
   SelectValue,
 } from "@/components/ui/select";
+import { getTodayDateString } from "@/lib/consultations/datetime";
 import { CONSULTATION_TIME_SLOTS } from "@/lib/consultations/time-slots";
 
 const EMPTY_FORM = {
@@ -31,14 +32,6 @@ const EMPTY_FORM = {
   date: "",
   time: "",
 };
-
-function getTodayDateString() {
-  const now = new Date();
-  const year = now.getFullYear();
-  const month = String(now.getMonth() + 1).padStart(2, "0");
-  const day = String(now.getDate()).padStart(2, "0");
-  return `${year}-${month}-${day}`;
-}
 
 export function BookConsultationDialog() {
   const router = useRouter();
