@@ -1,109 +1,156 @@
-<a href="https://demo-nextjs-with-supabase.vercel.app/">
-  <img alt="Next.js and Supabase Starter Kit - the fastest way to build apps with Next.js and Supabase" src="https://demo-nextjs-with-supabase.vercel.app/opengraph-image.png">
-  <h1 align="center">Next.js and Supabase Starter Kit</h1>
-</a>
+# Contour Education
 
-<p align="center">
- The fastest way to build apps with Next.js and Supabase
-</p>
-
-<p align="center">
-  <a href="#features"><strong>Features</strong></a> ·
-  <a href="#demo"><strong>Demo</strong></a> ·
-  <a href="#deploy-to-vercel"><strong>Deploy to Vercel</strong></a> ·
-  <a href="#clone-and-run-locally"><strong>Clone and run locally</strong></a> ·
-  <a href="#feedback-and-issues"><strong>Feedback and issues</strong></a>
-  <a href="#more-supabase-examples"><strong>More Examples</strong></a>
-</p>
-<br/>
+A consultation booking app built with Next.js and Supabase. Students book, reschedule, and cancel consultations; admins get a read-only view of every consultation across all students.
 
 ## Features
 
-- Works across the entire [Next.js](https://nextjs.org) stack
-  - App Router
-  - Pages Router
-  - Proxy
-  - Client
-  - Server
-  - It just works!
-- supabase-ssr. A package to configure Supabase Auth to use cookies
-- Password-based authentication block installed via the [Supabase UI Library](https://supabase.com/ui/docs/nextjs/password-based-auth)
-- Styling with [Tailwind CSS](https://tailwindcss.com)
-- Components with [shadcn/ui](https://ui.shadcn.com/)
-- Optional deployment with [Supabase Vercel Integration and Vercel deploy](#deploy-your-own)
-  - Environment variables automatically assigned to Vercel project
+- Email/password auth via Supabase (`@supabase/ssr`), with role-gated dashboards (`student` vs `admin`)
+- Students: book a consultation (multi-step dialog), toggle status, reschedule, cancel
+- Admins: read-only table of every consultation, grouped by student
+- Styling with [Tailwind CSS](https://tailwindcss.com) and [shadcn/ui](https://ui.shadcn.com/)
+- Unit tests with [Vitest](https://vitest.dev/) + [React Testing Library](https://testing-library.com/react)
 
-## Demo
+## Getting started
 
-You can view a fully working demo at [demo-nextjs-with-supabase.vercel.app](https://demo-nextjs-with-supabase.vercel.app/).
+### Prerequisites
 
-## Deploy to Vercel
+- [Node.js](https://nodejs.org/) 20 or later, and npm
+- [Docker](https://www.docker.com/) running (the Supabase CLI runs Postgres, Auth, Storage, etc. as containers) — Docker Desktop or an equivalent daemon
+- No global installs needed — the Supabase CLI is a project dependency and is run via `npx`/`npm`
 
-Vercel deployment will guide you through creating a Supabase account and project.
+### 1. Install dependencies
 
-After installation of the Supabase integration, all relevant environment variables will be assigned to the project so the deployment is fully functioning.
+```bash
+npm install
+```
 
-[![Deploy with Vercel](https://vercel.com/button)](https://vercel.com/new/clone?repository-url=https%3A%2F%2Fgithub.com%2Fvercel%2Fnext.js%2Ftree%2Fcanary%2Fexamples%2Fwith-supabase&project-name=nextjs-with-supabase&repository-name=nextjs-with-supabase&demo-title=nextjs-with-supabase&demo-description=This+starter+configures+Supabase+Auth+to+use+cookies%2C+making+the+user%27s+session+available+throughout+the+entire+Next.js+app+-+Client+Components%2C+Server+Components%2C+Route+Handlers%2C+Server+Actions+and+Middleware.&demo-url=https%3A%2F%2Fdemo-nextjs-with-supabase.vercel.app%2F&external-id=https%3A%2F%2Fgithub.com%2Fvercel%2Fnext.js%2Ftree%2Fcanary%2Fexamples%2Fwith-supabase&demo-image=https%3A%2F%2Fdemo-nextjs-with-supabase.vercel.app%2Fopengraph-image.png)
+### 2. Start the local Supabase stack
 
-The above will also clone the Starter kit to your GitHub, you can clone that locally and develop locally.
+```bash
+npx supabase start
+```
 
-If you wish to just develop locally and not deploy to Vercel, [follow the steps below](#clone-and-run-locally).
+This applies every migration in `supabase/migrations` and seeds local dev data from `supabase/seed.sql`: 3 students + 1 admin, all with password `password123` (see the seed file for the exact emails — `seed-admin1@example.com` is the ready-made admin login).
 
-## Clone and run locally
+The first run pulls several Docker images and can take a few minutes. When it finishes, it prints a table of local URLs and keys — keep that output, you need it for the next step.
 
-1. You'll first need a Supabase project which can be made [via the Supabase dashboard](https://database.new)
+### 3. Configure environment variables
 
-2. Create a Next.js app using the Supabase Starter template npx command
+Copy `.env.example` to `.env.local`:
 
-   ```bash
-   npx create-next-app --example with-supabase with-supabase-app
+```bash
+cp .env.example .env.local
+```
+
+Then fill in the two variables using the values `supabase start` printed:
+
+```env
+NEXT_PUBLIC_SUPABASE_URL=http://127.0.0.1:54321
+NEXT_PUBLIC_SUPABASE_PUBLISHABLE_KEY=<the "Publishable key" (or "anon key") from the `supabase start` output>
+```
+
+If you closed that output, `npx supabase status` reprints the same values.
+
+### 4. Run the app
+
+```bash
+npm run dev
+```
+
+The app runs on [localhost:3000](http://localhost:3000/) and redirects to `/auth/login`. Log in with one of the seeded accounts from step 2 (e.g. `seed-admin1@example.com` / `password123` for the admin view, or `seed-student1@example.com` / `password123` for the student view).
+
+### 5. Creating an admin user manually
+
+There's no self-service way to become an admin from the UI — every new sign-up defaults to the `student` role (see `supabase/migrations/20260821134843_create_profile_trigger.sql`). If you want to promote an account you signed up yourself (rather than using the seeded `seed-admin1@example.com`), flip its role directly in the database:
+
+1. Sign up through the app at `/auth/sign-up` (or use an already-existing account).
+2. Open Supabase Studio at [127.0.0.1:54323](http://127.0.0.1:54323) → **SQL Editor**, and run:
+
+   ```sql
+   update public.profiles
+   set role = 'admin'
+   where id = (select id from auth.users where email = 'you@example.com');
    ```
 
-   ```bash
-   yarn create next-app --example with-supabase with-supabase-app
-   ```
+3. Log out and back in (or refresh) so the app picks up the new role.
 
-   ```bash
-   pnpm create next-app --example with-supabase with-supabase-app
-   ```
+## Testing
 
-3. Use `cd` to change into the app's directory
+```bash
+npm test        # run once
+npm run test:watch
+```
 
-   ```bash
-   cd with-supabase-app
-   ```
+## Database changes
 
-4. Rename `.env.example` to `.env.local` and update the following:
+Schema changes go through `supabase/migrations` (`npx supabase migration new <name>`), not manual edits in Studio — `supabase db reset` replays every migration plus `seed.sql` from scratch.
 
-  ```env
-  NEXT_PUBLIC_SUPABASE_URL=[INSERT SUPABASE PROJECT URL]
-  NEXT_PUBLIC_SUPABASE_PUBLISHABLE_KEY=[INSERT SUPABASE PROJECT API PUBLISHABLE OR ANON KEY]
-  ```
-  > [!NOTE]
-  > This example uses `NEXT_PUBLIC_SUPABASE_PUBLISHABLE_KEY`, which refers to Supabase's new **publishable** key format.
-  > Both legacy **anon** keys and new **publishable** keys can be used with this variable name during the transition period. Supabase's dashboard may show `NEXT_PUBLIC_SUPABASE_ANON_KEY`; its value can be used in this example.
-  > See the [full announcement](https://github.com/orgs/supabase/discussions/29260) for more information.
 
-  Both `NEXT_PUBLIC_SUPABASE_URL` and `NEXT_PUBLIC_SUPABASE_PUBLISHABLE_KEY` can be found in [your Supabase project's API settings](https://supabase.com/dashboard/project/_?showConnect=true)
+## Approach
 
-5. You can now run the Next.js local development server:
+### Consultations Table
+Schema:
+id: uuid*
+student_id: uuid*
+first_name: string*
+last_name: string*
+consult_reason: string
+date_time: timestampz
+status: enum( scheduled, completed, cancelled) default: scheduled
 
-   ```bash
-   npm run dev
-   ```
+Opted for a uuid approach to create a unique primary key id. There can be an argument that another data type would scale better but for this project's use case and the fact that postgressql can handle millions of records of this shape. Opted to lean on something familiar and simple. student_id is a foreign key that references auth.users.id that already comes built in with the supabase nextjs boilerplate. This was a good starting point in establishing a relationship between this table and the profiles table. Additionally, it becomes a reference for role based access checks throughout the project. Also, another decision point is making the consult_reason not null. Early on, I thought this was okay: an admin only needs first name and last name to identify the user and know the date and time of the consultation. But as the project progressed, I realized that this was needed in the client side as some form of header to identify between bookings for the user. Arguably, you can use some form of booking id but using the consult_reason is more human-readable. I'll have this as a point of improvement if I iterate on this project again. As for status, I opted not to include incomplete for simplicity. Better UX would dictate that the user can save their work as they go through a goal like booking a consultation so this is also another fast-follow/point of improvement for the project. Adding created_at and updated_at as well would be helpful for future features I reckon. I can imagine a world where we can have a job that identifies cancelled or incomplete consultation bookings and we can send automated emails to them to finish a booking or encourage them to make a new one. 
 
-   The starter kit should now be running on [localhost:3000](http://localhost:3000/).
+### Profiles Table
+Schema:
+id: uuid*
+created_at: timestampz
+role: enum( student, admin ) default: student
 
-6. This template comes with the default shadcn/ui style initialized. If you instead want other ui.shadcn styles, delete `components.json` and [re-install shadcn/ui](https://ui.shadcn.com/docs/installation/next)
+Also opted for the bare minimum with the Profiles table. id, similar to student_id, references auth.users.id. This relationship allows us to identify the roles of the user and display content accordingly. For roles, I settled for student and admin. The student role can make CRUD updates on their consultation bookings but are forbidden to go an admin's interface. The admin role on the other hand has read only access to all bookings made by students. Honestly, I didn't think to prohibit admins from booking their own consultations as well and just assumed that admins may also book consultations. Because there's not a lot of time given for this exercise, I opted for these two roles as the MVP. Given more time, I think the next iteration would be to introduce more roles and even within these roles, create granular permissions depending on the type of access they need. For example, we can introduce a staff role that may have a lot of admin actions available to them but are prohibited from seeing student data for example. Also, I purposefully made student the default role. The app focused a lot on the functionalities for the student and I assume that in the real world there would be more students than admin. However, this can be revisited if assigning a default role on the onset would have major drawbacks especially in the event more nuaced roles are introduced.
 
-> Check out [the docs for Local Development](https://supabase.com/docs/guides/getting-started/local-development) to also run Supabase locally.
+## RLS
+I added policies in both tables to satisfy the P0 requirements of this project: I added CRUD policies in the consultations table that only allowed a user to make updates to their own consultations and another policy to allow anyone with an admin role to view all consultations. Profiles also has 2 policies enabled: a user has access to their own profile data and admin can see the profiles of other admins. The latter really is to be able to see admin users who book consultations. It also future proofs the project a bit by establishing a way to access admin data in case there would be a need for an interface to "promote" a non-admin user to an admin role or even change an admin role to something else altogether. If we're strictly just sticking with the scope of the project, this can be improved by just revoking access to the student-dashboard when you're an admin and removing the policy altogether. 
 
-## Feedback and issues
+I'd also like to point out that I've added RLS in the project despite not being a hard requirement is because I thought it was important; ensuring a layer of security especially for actions that mutate a user is essential especially in the context of privacy. The last thing this app needs is another student having admin access or being able to alter the consultation schedule of another student altogether. As an additional bonus, the supabase boilerplate really made this difficult not to include too!
 
-Please file feedback and issues over on the [Supabase GitHub org](https://github.com/supabase/supabase/issues/new/choose).
+## Setting Admin Roles
+I opted to not have any mechanisms to create an admin role within the app because I think this should be scoped in a different project altogether. There should be a separate internal process to add admin accounts if we want to support this feature.
 
-## More Supabase examples
+## Native DateTime Input
+Opted to use the native datetime input instead of a picker library to avoid bloat and also due to time constraints. Most offices at Contour have 9:30am - 9:30pm business hours anyway so this can just be displayed in 30 minute increments. I don't feel strongly on the approach here so I can be pursuaded to use a ready-made solution especially if it improves the UX of this entire process.
 
-- [Next.js Subscription Payments Starter](https://github.com/vercel/nextjs-subscription-payments)
-- [Cookie-based Auth and the Next.js 13 App Router (free course)](https://youtube.com/playlist?list=PL5S4mPUpp4OtMhpnp93EFSo42iQ40XjbF)
-- [Supabase Auth and the Next.js App Router](https://github.com/supabase/supabase/tree/master/examples/auth/nextjs)
+## Admin Table
+Similar to the DateTime Input, I opted to display the bookings in the simplest way possible to fulfill the MVP of the project. Clearly, there's a lot of room for improvement on this page. Creating a more dedicated table or using other packages already has a table with sort and search capabilities will vastly improve the usability of this table. At this present iteration, it's definitely not scalable; search and pagination are two features that would greatly increase this view's utility. Another improvement is being redirected to a student's profile page upon clicking their student_id on this table. There's so much you can do with an LMS and this is profile view can contain all the information of the particular user and we can also introduce features here that can help students accomplish their objectives such as rescheduling consultations for them or tracking their progress.
+
+## Testing
+Added some unit tests to address core functionalities on the consultation card since a lot of business logic lives there but this app would benefit more with end to end tests. For now, functionalities were just tested manually. There would be more confidence in shipping this app to production if we can outline the user journey from logging in to making a booking and updating an existing booking. From the admin side, just being able to confirm that they can see the table of consultations is going to be quite helpful. I would definitely add this in the next iteration of the app.
+
+Also took a little bit of time testing out the policies by manual testing. I wasn't very familiar with Supabase and NextJS and had a snafu with all the mock data I created in Studio getting deleted when I ran supabase reset. I really had to create those migrations and seed data first so I don't have to keep creating the tables and mock data over and over again. 
+
+## Claude use
+Claude was pretty instrumental and helping me finish this project. I went over my timeboxed hours in the backend side of things because of my unfamiliarity with supabase and nextjs and I genuinely wanted to go over it slowly and learn the frameworks. I was pretty amazed with how easy supabase can set things up but there was still a lot of boilerplate to go through and it was pretty easy to get lost in the weeds. Client side was a bit easier since the boilerplate already had shadcn ui installed and there were ready-made components available that suited the project. On top of that, I was pretty familiar with react and just used tailwind on a recent project so it was easier to understand what Claude was doing. SQL creation too was pretty easy thanks to the AI tool. 
+
+## Other Considerations
+
+### Add first name and last name in profiles table once a consultation is booked
+It's probably safe to assume that the one booking the consultations will always have the same first and last name associated with their log in. Once this information is available, we can set this in the profiles table and have it auto fill future consultation bookings
+
+## Summary
+What it is: A consultation booking app (Next.js + Supabase) where students book/reschedule/cancel their own consultations and admins get a read-only view across all students.
+
+Auth & roles: Supabase email/password auth (@supabase/ssr), with a profiles table (id → auth.users.id, role enum student/admin, default student) driving role-gated dashboards. No in-app way to create admins — done manually via SQL against the seeded/local DB.
+
+Data model: A consultations table (id, student_id FK, first_name, last_name, consult_reason not-null, date_time, status enum scheduled/completed/cancelled, default scheduled). No incomplete status, no created_at/updated_at yet — called out as fast-follows.
+
+Access control: RLS on both tables even though not strictly required — students can only CRUD their own consultations, admins get read-all on consultations; profiles are visible to self, and admins can see other admins' profiles (kept mainly so admin-booked consultations still resolve, and to future-proof role management).
+
+UI decisions (explicitly scoped down for time): native <input type="datetime"> instead of a picker library; a plain HTML table for the admin view instead of a sortable/searchable/paginated component — both flagged as the biggest usability gaps if iterated on.
+
+Testing: Unit tests (Vitest + RTL) only on ConsultationCard, since most business logic lives there; everything else was manually tested. E2E coverage of the login → book → update flow is called out as the top testing gap.
+
+Notable self-identified gaps/next steps: no admin-self-booking guardrail, no granular roles (e.g., a "staff" role), no admin drill-down into a student's profile, and no auto-fill of name from profile on booking.
+
+
+
+
+
