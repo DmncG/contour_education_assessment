@@ -40,12 +40,13 @@ export async function PATCH(
     return NextResponse.json({ error: "Unauthorized" }, { status: 401 });
   }
 
-  // RLS restricts this update to the consultation's own student, so no
-  // ownership check is needed here beyond the row matching at all.
+  // Filter by student_id explicitly rather than relying solely on RLS —
+  // belt and braces in case the policy is ever misconfigured.
   const { data, error } = await supabase
     .from("consultations")
     .update(update)
     .eq("id", id)
+    .eq("student_id", user.id)
     .select("id, status, date_time")
     .single();
 
