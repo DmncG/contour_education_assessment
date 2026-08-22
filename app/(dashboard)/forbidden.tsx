@@ -10,7 +10,7 @@ export default function Forbidden() {
         to view this page.
       </p>
       <Button asChild>
-        <Link href="/protected">Back to your dashboard</Link>
+        <Link href="/">Back to your dashboard</Link>
       </Button>
     </div>
   );
