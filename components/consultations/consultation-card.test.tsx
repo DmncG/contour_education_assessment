@@ -4,6 +4,12 @@ import { beforeEach, describe, expect, it, vi } from "vitest";
 import { ConsultationCard } from "@/components/consultations/consultation-card";
 import type { ConsultationStatus } from "@/lib/consultations/status";
 
+const refreshMock = vi.fn();
+
+vi.mock("next/navigation", () => ({
+  useRouter: () => ({ refresh: refreshMock }),
+}));
+
 function makeConsultation(status: ConsultationStatus = "scheduled") {
   return {
     id: "consultation-123",
@@ -34,6 +40,7 @@ let fetchMock: ReturnType<typeof vi.fn>;
 beforeEach(() => {
   fetchMock = vi.fn();
   vi.stubGlobal("fetch", fetchMock);
+  refreshMock.mockClear();
 });
 
 describe("ConsultationCard toggle", () => {
@@ -183,6 +190,7 @@ describe("ConsultationCard cancel", () => {
       expect(screen.getByText("cancelled")).toBeInTheDocument();
     });
     expect(screen.queryByRole("dialog")).not.toBeInTheDocument();
+    expect(refreshMock).toHaveBeenCalledTimes(1);
 
     // Current behavior: Update/Cancel only hide once a consultation is
     // "completed" — a cancelled row still shows them.

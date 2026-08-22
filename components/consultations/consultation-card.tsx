@@ -1,5 +1,6 @@
 "use client";
 
+import { useRouter } from "next/navigation";
 import { useState } from "react";
 import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
@@ -50,6 +51,7 @@ export function ConsultationCard({
 }: {
   consultation: Consultation;
 }) {
+  const router = useRouter();
   const [status, setStatus] = useState(consultation.status);
   const [dateTimeValue, setDateTimeValue] = useState(consultation.date_time);
 
@@ -103,6 +105,7 @@ export function ConsultationCard({
       if (!response.ok) {
         throw new Error("Failed to update consultation");
       }
+      router.refresh();
       return true;
     } catch {
       setStatus(previousStatus);
