@@ -1,26 +1,37 @@
-import { DeployButton } from "@/components/deploy-button";
 import { EnvVarWarning } from "@/components/env-var-warning";
 import { AuthButton } from "@/components/auth-button";
 import { ThemeSwitcher } from "@/components/theme-switcher";
 import { hasEnvVars } from "@/lib/utils";
+import { requireProfile } from "@/lib/auth/require-role";
 import Link from "next/link";
+import Image from "next/image";
 import { Suspense } from "react";
 
-export default function AdminLayout({
+// Every route in this group is authenticated + role-gated, so there's no
+// safe static shell to prerender. Opt out of Cache Components' static-shell
+// requirement instead of fighting it with Suspense boundaries that would
+// just show a blank shell anyway.
+export const instant = false;
+
+export default async function DashboardLayout({
   children,
 }: {
   children: React.ReactNode;
 }) {
+  const profile = await requireProfile();
+
   return (
     <main className="min-h-screen flex flex-col items-center">
       <div className="flex-1 w-full flex flex-col gap-20 items-center">
         <nav className="w-full flex justify-center border-b border-b-foreground/10 h-16">
           <div className="w-full max-w-5xl flex justify-between items-center p-3 px-5 text-sm">
             <div className="flex gap-5 items-center font-semibold">
-              <Link href={"/"}>Next.js Supabase Starter</Link>
-              <div className="flex items-center gap-2">
-                <DeployButton />
-              </div>
+              <Link href={"/"}>
+                <Image width={150} height={50} alt="Contour Education" src="http://127.0.0.1:54321/storage/v1/object/public/public_assets/contour_logo.svg" />
+              </Link>
+              {profile.role === "admin" && (
+                <Link href={"/consultations"}>Consultations</Link>
+              )}
             </div>
             {!hasEnvVars ? (
               <EnvVarWarning />

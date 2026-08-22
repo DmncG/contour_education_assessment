@@ -1,33 +1,10 @@
-import { redirect, forbidden } from "next/navigation";
-
-import { createClient } from "@/lib/supabase/server";
 import { InfoIcon } from "lucide-react";
 import { FetchDataSteps } from "@/components/tutorial/fetch-data-steps";
-import { Suspense } from "react";
+import { requireProfile } from "@/lib/auth/require-role";
 
-async function UserDetails() {
-  const supabase = await createClient();
-  const { data, error: authError } = await supabase.auth.getClaims();
-  const { data: profile, error: profileError } = await supabase.from("profiles").select();
-  const user = profile?.filter(p => p.id === data?.claims?.sub)
+export default async function StudentDashboard() {
+  const profile = await requireProfile();
 
-  if (!data?.claims) {
-    redirect("/auth/login");
-  }
-
-  if (user?.[0]?.role !== "admin") {
-    forbidden();
-  }
-
-
-  if ( authError || profileError ) {
-    redirect("/admin/error");
-  }
-
-  return JSON.stringify(data.claims, null, 2);
-}
-
-export default function Admin() {
   return (
     <div className="flex-1 w-full flex flex-col gap-12">
       <div className="w-full">
@@ -40,9 +17,7 @@ export default function Admin() {
       <div className="flex flex-col gap-2 items-start">
         <h2 className="font-bold text-2xl mb-4">Your user details</h2>
         <pre className="text-xs font-mono p-3 rounded border max-h-32 overflow-auto">
-          <Suspense>
-            <UserDetails />
-          </Suspense>
+          {JSON.stringify(profile, null, 2)}
         </pre>
       </div>
       <div>
