@@ -111,7 +111,7 @@ export function ConsultationCard({
           <Badge className="capitalize" variant={STATUS_VARIANT[status]}>
             {status}
           </Badge>
-            <div className="flex items-center gap-2">
+            <div className="flex items-center gap-2 pt-1">
               <Button
                 variant="link"
                 className="h-auto p-0 text-xs"
@@ -122,7 +122,7 @@ export function ConsultationCard({
           { status !== "completed" && (
               <Button
                 variant="link"
-                className="h-auto p-0 text-xs"
+                className="h-auto p-0 text-xs text-muted-foreground hover:text-destructive"
                 onClick={() => setCancelOpen(true)}
               >
                 Cancel
