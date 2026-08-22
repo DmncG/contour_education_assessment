@@ -1,19 +1,7 @@
-import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
-import {
-  Card,
-  CardContent,
-  CardHeader,
-  CardTitle,
-} from "@/components/ui/card";
+import { ConsultationCard } from "@/components/consultations/consultation-card";
 import { requireProfile } from "@/lib/auth/require-role";
 import { createClient } from "@/lib/supabase/server";
-
-const STATUS_VARIANT = {
-  scheduled: "default",
-  completed: "secondary",
-  cancelled: "destructive",
-} as const;
 
 export default async function StudentDashboard() {
   const profile = await requireProfile();
@@ -39,34 +27,7 @@ export default async function StudentDashboard() {
       ) : (
         <div className="flex flex-col gap-4">
           {consultations.map((consultation) => (
-            <Card key={consultation.id}>
-              <CardHeader className="flex flex-row items-center justify-between gap-4 space-y-0">
-                <CardTitle className="text-base">
-                  {consultation.consult_reason || "Consultation"}
-                </CardTitle>
-                <Badge
-                  className="capitalize"
-                  variant={
-                    STATUS_VARIANT[
-                      consultation.status as keyof typeof STATUS_VARIANT
-                    ]
-                  }
-                >
-                  {consultation.status}
-                </Badge>
-              </CardHeader>
-              <CardContent>
-                <p className="text-sm text-muted-foreground">
-                  {new Date(consultation.date_time).toLocaleString(
-                    undefined,
-                    {
-                      dateStyle: "long",
-                      timeStyle: "short",
-                    },
-                  )}
-                </p>
-              </CardContent>
-            </Card>
+            <ConsultationCard key={consultation.id} consultation={consultation} />
           ))}
           <Button>Book a Consultation</Button>
         </div>
