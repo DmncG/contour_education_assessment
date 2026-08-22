@@ -11,6 +11,13 @@ import { requireRole } from "@/lib/auth/require-role";
 import { STATUS_VARIANT, type ConsultationStatus } from "@/lib/consultations/status";
 import { createClient } from "@/lib/supabase/server";
 
+// Reads all consultations for the admin, which is per-user/role-gated data
+// with no safe static shell — same reasoning as app/(dashboard)/layout.tsx.
+// The layout's opt-out only covers navigation into /(dashboard) from
+// outside; sibling navigation (e.g. from /student-dashboard) still
+// validates this page.
+export const instant = false;
+
 const COLUMN_COUNT = 5;
 
 type ConsultationRow = {

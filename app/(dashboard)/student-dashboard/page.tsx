@@ -3,6 +3,12 @@ import { ConsultationCard } from "@/components/consultations/consultation-card";
 import { requireProfile } from "@/lib/auth/require-role";
 import { createClient } from "@/lib/supabase/server";
 
+// Reads the signed-in student's own consultations, which is per-user data
+// with no safe static shell — same reasoning as app/(dashboard)/layout.tsx.
+// The layout's opt-out only covers navigation into /(dashboard) from
+// outside; sibling navigation (e.g. from /admin) still validates this page.
+export const instant = false;
+
 export default async function StudentDashboard() {
   const profile = await requireProfile();
   const supabase = await createClient();
