@@ -1,29 +1,76 @@
-import { InfoIcon } from "lucide-react";
-import { FetchDataSteps } from "@/components/tutorial/fetch-data-steps";
+import { Badge } from "@/components/ui/badge";
+import { Button } from "@/components/ui/button";
+import {
+  Card,
+  CardContent,
+  CardHeader,
+  CardTitle,
+} from "@/components/ui/card";
 import { requireProfile } from "@/lib/auth/require-role";
+import { createClient } from "@/lib/supabase/server";
+
+const STATUS_VARIANT = {
+  scheduled: "default",
+  completed: "secondary",
+  cancelled: "destructive",
+} as const;
 
 export default async function StudentDashboard() {
   const profile = await requireProfile();
+  const supabase = await createClient();
+
+  const { data: consultations } = await supabase
+    .from("consultations")
+    .select("id, consult_reason, date_time, status")
+    .eq("student_id", profile.id)
+    .order("date_time", { ascending: false });
 
   return (
-    <div className="flex-1 w-full flex flex-col gap-12">
-      <div className="w-full">
-        <div className="bg-accent text-sm p-3 px-5 rounded-md text-foreground flex gap-3 items-center">
-          <InfoIcon size="16" strokeWidth={2} />
-          This is a protected page that you can only see as an authenticated
-          user
+    <div className="flex-1 w-full flex flex-col gap-6">
+      <h2 className="font-bold text-2xl">Your Consultations</h2>
+
+      {!consultations || consultations.length === 0 ? (
+        <div className="flex flex-col items-center gap-4 border rounded-md p-12 text-center">
+          <p className="text-muted-foreground">
+            There are no bookings available.
+          </p>
+          <Button>Book a Consultation</Button>
         </div>
-      </div>
-      <div className="flex flex-col gap-2 items-start">
-        <h2 className="font-bold text-2xl mb-4">Your user details</h2>
-        <pre className="text-xs font-mono p-3 rounded border max-h-32 overflow-auto">
-          {JSON.stringify(profile, null, 2)}
-        </pre>
-      </div>
-      <div>
-        <h2 className="font-bold text-2xl mb-4">Next steps</h2>
-        <FetchDataSteps />
-      </div>
+      ) : (
+        <div className="flex flex-col gap-4">
+          {consultations.map((consultation) => (
+            <Card key={consultation.id}>
+              <CardHeader className="flex flex-row items-center justify-between gap-4 space-y-0">
+                <CardTitle className="text-base">
+                  {consultation.consult_reason || "Consultation"}
+                </CardTitle>
+                <Badge
+                  className="capitalize"
+                  variant={
+                    STATUS_VARIANT[
+                      consultation.status as keyof typeof STATUS_VARIANT
+                    ]
+                  }
+                >
+                  {consultation.status}
+                </Badge>
+              </CardHeader>
+              <CardContent>
+                <p className="text-sm text-muted-foreground">
+                  {new Date(consultation.date_time).toLocaleString(
+                    undefined,
+                    {
+                      dateStyle: "long",
+                      timeStyle: "short",
+                    },
+                  )}
+                </p>
+              </CardContent>
+            </Card>
+          ))}
+          <Button>Book a Consultation</Button>
+        </div>
+      )}
     </div>
   );
 }
