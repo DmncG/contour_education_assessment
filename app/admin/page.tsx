@@ -7,19 +7,21 @@ import { Suspense } from "react";
 
 async function UserDetails() {
   const supabase = await createClient();
-  const { data, error } = await supabase.auth.getClaims();
-  const { data: profile, error: profileError } = await supabase.from("profiles").select()
+  const { data, error: authError } = await supabase.auth.getClaims();
+  const { data: profile, error: profileError } = await supabase.from("profiles").select();
+  const user = profile?.filter(p => p.id === data?.claims?.sub)
 
   if (!data?.claims) {
     redirect("/auth/login");
   }
 
-  if ( error || profileError ) {
-
-  }
-  
-  if ( profile?.[0]?.role !== "admin" ) {
+  if (user?.[0]?.role !== "admin") {
     forbidden();
+  }
+
+
+  if ( authError || profileError ) {
+    redirect("/admin/error");
   }
 
   return JSON.stringify(data.claims, null, 2);
