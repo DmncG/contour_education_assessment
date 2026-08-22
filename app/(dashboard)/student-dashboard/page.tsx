@@ -1,4 +1,4 @@
-import { Button } from "@/components/ui/button";
+import { BookConsultationDialog } from "@/components/consultations/book-consultation-dialog";
 import { ConsultationCard } from "@/components/consultations/consultation-card";
 import { requireProfile } from "@/lib/auth/require-role";
 import { createClient } from "@/lib/supabase/server";
@@ -11,6 +11,7 @@ export default async function StudentDashboard() {
     .from("consultations")
     .select("id, consult_reason, date_time, status")
     .eq("student_id", profile.id)
+    .neq("status", "cancelled")
     .order("date_time", { ascending: false });
 
   return (
@@ -22,14 +23,14 @@ export default async function StudentDashboard() {
           <p className="text-muted-foreground">
             There are no bookings available.
           </p>
-          <Button>Book a Consultation</Button>
+          <BookConsultationDialog />
         </div>
       ) : (
         <div className="flex flex-col gap-4">
           {consultations.map((consultation) => (
             <ConsultationCard key={consultation.id} consultation={consultation} />
           ))}
-          <Button>Book a Consultation</Button>
+          <BookConsultationDialog />
         </div>
       )}
     </div>
