@@ -30,7 +30,7 @@ export default async function DashboardLayout({
                 <Image width={150} height={50} alt="Contour Education" src="/contour_logo.svg" />
               </Link>
               {profile.role === "admin" && (
-                <Link href={"/consultations"}>Consultations</Link>
+                <Link href={"/admin"}>Consultations</Link>
               )}
             </div>
             {!hasEnvVars ? (
