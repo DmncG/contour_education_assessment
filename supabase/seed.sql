@@ -34,3 +34,10 @@ from new_users;
 update public.profiles
 set role = 'admin'
 where id = (select id from auth.users where email = 'seed-admin1@example.com');
+
+insert into public.consultations (student_id, first_name, last_name, consult_reason, date_time)
+values
+  ((select id from auth.users where email = 'seed-student1@example.com'), 'Seed', 'Student1', 'College application essay review', now() + interval '2 days'),
+  ((select id from auth.users where email = 'seed-student1@example.com'), 'Seed', 'Student1', 'SAT prep planning', now() + interval '2 weeks'),
+  ((select id from auth.users where email = 'seed-student2@example.com'), 'Seed', 'Student2', 'Course selection guidance', now() + interval '4 days'),
+  ((select id from auth.users where email = 'seed-student2@example.com'), 'Seed', 'Student2', 'Scholarship application help', now() + interval '1 week');
